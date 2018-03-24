@@ -17,6 +17,7 @@ FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN 
 import json
 import os
 import socket
+import sys
 from threading import Timer
 from tkinter import *
 from tkinter import messagebox
