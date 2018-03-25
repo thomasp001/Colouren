@@ -21,9 +21,10 @@ import sys
 from threading import Timer
 from tkinter import *
 from tkinter import messagebox
-from PIL import ImageTk, Image
+from PIL import ImageTk, Image, ImageGrab
 from pythonosc import udp_client
-from desktopmagic.screengrab_win32 import getDisplayRects, getRectAsImage, getDisplaysAsImages
+if os.name == "nt":
+    from desktopmagic.screengrab_win32 import getDisplayRects, getRectAsImage, getDisplaysAsImages
 
 window = Tk()
 window.title("Colouren by Thomas P")
@@ -64,6 +65,7 @@ def quitting():
     global T
     T.cancel()
     window.destroy()
+    sys.exit()
 
 
 def sel():
@@ -73,7 +75,7 @@ def sel():
         sel_file = open(os.path.expanduser("~/Library/Application Support/Colouren/config.json"), 'w')
     elif os.name == "nt":
         sel_file = open(os.path.expanduser("~\Colouren\config.json"), 'w')
-    if len(getDisplayRects()) >= 2:
+    if os.name == "nt" and len(getDisplayRects()) >= 2:
         Config['display'] = var.get()
     else:
         Config['display'] = 1
@@ -92,9 +94,9 @@ def update_details():
         update_details_file = open(os.path.expanduser("~\Colouren\config.json"), 'r+')
     Config['ip'] = ipentry.get()
     Config['port'] = portentry.get()
-    Config['optimisation'] = optimisationentry.get()
-    Optimisation = Config["optimisation"]
-    Config['frequency'] = round(1/frequencyentry.get(), 2)
+    Config['optimisation'] = int(optimisationentry.get())
+    Optimisation = int(Config["optimisation"])
+    Config['frequency'] = round(1/int(frequencyentry.get()), 2)
     if not verify_ip():
         Pause = True
         Config['ip'] = ""
@@ -126,7 +128,10 @@ def calculate_and_send_packet():
         red = 0
         green = 0
         blue = 0
-        desktop_image = getRectAsImage(getDisplayRects()[Config['display'] - 1])
+        if os.name == "nt":
+            desktop_image = getRectAsImage(getDisplayRects()[Config['display'] - 1])
+        elif os.name == "posix":
+            desktop_image = ImageGrab.grab()
         for y in range(0, desktop_image.size[1], Optimisation):
             for x in range(0, desktop_image.size[0], Optimisation):
                 colour = desktop_image.getpixel((x, y))
@@ -151,8 +156,8 @@ T = PerpetualTimer(0.25, calculate_and_send_packet)
 def verify_and_update_osc():
     global T
     global Optimisation
-    Optimisation = Config["optimisation"]
-    T = PerpetualTimer(Config["optimisation"], calculate_and_send_packet)
+    Optimisation = int(Config["optimisation"])
+    T = PerpetualTimer(float(Config["frequency"]), calculate_and_send_packet)
     if not T.is_alive() and verify_ip() and verify_port():
         T.start()
     else:
@@ -190,13 +195,13 @@ if __name__ == "__main__":
                 file.close()
             else:
                 file = open(os.path.expanduser("~/Library/Application Support/Colouren/config.json"), 'w+')
-                Config = {'ip': '', 'port': '', 'display': 1, 'optimisation': 10, 'refresh': 0.25}
+                Config = {'ip': '', 'port': '', 'display': 1, 'optimisation': 10, 'frequency': 0.25}
                 file.write(json.dumps(Config))
                 file.close()
         else:
             os.makedirs(os.path.expanduser("~/Library/Application Support/Colouren"))
             file = open(os.path.expanduser("~/Library/Application Support/Colouren/config.json"), 'w+')
-            Config = {'ip': '', 'port': '', 'display': 1, 'optimisation': 10, 'refresh': 0.25}
+            Config = {'ip': '', 'port': '', 'display': 1, 'optimisation': 10, 'frequency': 0.25}
             file.write(json.dumps(Config))
             file.close()
     # If using Windows
@@ -208,21 +213,26 @@ if __name__ == "__main__":
                 file.close()
             else:
                 file = open(os.path.expanduser("~\Colouren\config.json"), 'w+')
-                Config = {'ip': '', 'port': '', 'display': 1, 'optimisation': 10, 'refresh': 0.25}
+                Config = {'ip': '', 'port': '', 'display': 1, 'optimisation': 10, 'frequency': 0.25}
                 file.write(json.dumps(Config))
                 file.close()
         else:
             os.makedirs(os.path.expanduser("~\Colouren"))
             file = open(os.path.expanduser("~\Colouren\config.json"), 'w+')
-            Config = {'ip': '', 'port': '', 'display': 1, 'optimisation': 10, 'refresh': 0.25}
+            Config = {'ip': '', 'port': '', 'display': 1, 'optimisation': 10, 'frequency': 0.25}
             file.write(json.dumps(Config))
             file.close()
 
-    desktop1img = getDisplaysAsImages()[0]
-    try:
-        desktop2img = getDisplaysAsImages()[1]
-    except IndexError:
+    if os.name == "nt":
+        desktop1img = getDisplaysAsImages()[0]
+        try:
+            desktop2img = getDisplaysAsImages()[1]
+        except IndexError:
+            desktop2img = Image.new('RGB', (100, 100))
+    elif os.name == "posix":
+        desktop1img = ImageGrab.grab()
         desktop2img = Image.new('RGB', (100, 100))
+
 
     desktop1img = desktop1img.resize((int(150 * (desktop1img.size[0] / desktop1img.size[1])), 150), Image.ANTIALIAS)
     desktop2img = desktop2img.resize((int(150 * (desktop2img.size[0] / desktop2img.size[1])), 150), Image.ANTIALIAS)
@@ -257,7 +267,8 @@ if __name__ == "__main__":
     # Radio Button and Labels
     desktop1label = Radiobutton(leftFrame, text="Display 1", variable=var, value=1, command=sel, bg='grey')
     desktop1label.pack(side="top")
-    if len(getDisplayRects()) >= 2:
+
+    if os.name == "nt" and len(getDisplayRects()) >= 2:
         desktop2label = Radiobutton(rightFrame, text="Display 2", variable=var, value=2, command=sel, bg='grey')
     else:
         desktop2label = Radiobutton(rightFrame, text="Not Available", variable=var, value=2, command=sel, bg='grey')
@@ -282,9 +293,9 @@ if __name__ == "__main__":
 
     # IP Address
     iplabel = Label(detailsFrame, text="IP Address: ", bg='grey')
-    iplabel.grid(column=0, columnspan=3, row=1, pady=2)
+    iplabel.grid(column=0, columnspan=3, row=1, pady=2, sticky='w')
     ipentry = Entry(detailsFrame, exportselection=0)
-    ipentry.grid(column=3, row=1, pady=2)
+    ipentry.grid(column=3, row=1, pady=2, sticky='w')
 
     # Port
     portlabel = Label(detailsFrame, text="Port: ", bg='grey')
@@ -292,27 +303,27 @@ if __name__ == "__main__":
     portentry = Entry(detailsFrame, exportselection=0)
     portentry.grid(column=3, columnspan=4, row=2, pady=2, sticky="w")
     portlabel2 = Label(detailsFrame, text="(Default: 7700)", bg='grey')
-    portlabel2.grid(column=7, row=2, pady=2)
+    portlabel2.grid(column=7, row=2, pady=2, sticky='w')
 
     # Optimisation
     optimisationlabel = Label(detailsFrame, text="Optimisation: ", bg='grey')
-    optimisationlabel.grid(column=0, columnspan=3, row=3, pady=2)
-    optimisationentry = Spinbox(detailsFrame, exportselection=0, _from=1, to=15)
+    optimisationlabel.grid(column=0, columnspan=3, row=3, pady=2, sticky='w')
+    optimisationentry = Spinbox(detailsFrame, exportselection=0, from_=1, to=15)
     optimisationentry.grid(column=3, row=3, pady=2)
     optimisationlabel2 = Label(detailsFrame, text="(Default: 10, Higher is more optimised)", bg='grey')
-    optimisationlabel2.grid(column=7, row=3, pady=2)
+    optimisationlabel2.grid(column=7, row=3, pady=2, sticky='w')
 
     # Frequency
     frequencylabel = Label(detailsFrame, text="Frequency: ", bg='grey')
-    frequencylabel.grid(column=0, columnspan=3, row=4, pady=2)
-    frequencyentry = Spinbox(detailsFrame, exportselection=0, _from=1, to=10)
+    frequencylabel.grid(column=0, columnspan=3, row=4, pady=2, sticky='w')
+    frequencyentry = Spinbox(detailsFrame, exportselection=0, from_=1, to=10)
     frequencyentry.grid(column=3, row=4, pady=2)
-    frequencylabel2 = Label(detailsFrame, text="(Default: 4. Amount of refreshes/second.)", bg='grey')
-    frequencylabel2.grid(column=7, row=4, pady=2)
+    frequencylabel2 = Label(detailsFrame, text="(Default: 4. Amount of refreshes/second)", bg='grey')
+    frequencylabel2.grid(column=7, row=4, pady=2, sticky='w')
 
     # Apply Button
     applybutton = Button(detailsFrame, bg="grey", text="Apply", command=update_details)
-    applybutton.grid(column=0, row=4, columnspan=8, pady=2)
+    applybutton.grid(column=0, row=5, columnspan=8, pady=2)
 
     # Information
     # Title Label
@@ -331,12 +342,14 @@ if __name__ == "__main__":
         portentry.insert(0, Config['port'])
     else:
         portentry.insert(0, '7700')
+    optimisationentry.delete(0)
+    frequencyentry.delete(0)
     if len(str(Config['optimisation'])) >= 1:
         optimisationentry.insert(0, str(Config['optimisation']))
     else:
         optimisationentry.insert(0, '10')
     if len(str(Config['frequency'])) >= 1:
-        frequencyentry.insert(0, str(1/Config['frequency']))
+        frequencyentry.insert(0, str(int(1/Config['frequency'])))
     else:
         frequencyentry.insert(0, '4')
     verify_and_update_osc()
