@@ -18,17 +18,19 @@ import json
 import os
 import socket
 import sys
+from colorthief import ColorThief
 from threading import Timer
 from tkinter import *
 from tkinter import messagebox
 from PIL import ImageTk, Image, ImageGrab
 from pythonosc import udp_client
+
 if os.name == "nt":
     from desktopmagic.screengrab_win32 import getDisplayRects, getRectAsImage, getDisplaysAsImages
 
 window = Tk()
 window.title("Colouren by Thomas P")
-window.geometry("700x550")
+window.geometry("700x600")
 window.configure(background='grey')
 window.resizable(width=False, height=False)
 
@@ -68,6 +70,28 @@ def quitting():
     sys.exit()
 
 
+def mode_average():
+    modeentry.config(text='average')
+    Config['mode'] = 'average'
+    if os.name == "posix":
+        sel_file = open(os.path.expanduser("~/Library/Application Support/Colouren/config.json"), 'w')
+    elif os.name == "nt":
+        sel_file = open(os.path.expanduser("~\Colouren\config.json"), 'w')
+    sel_file.write(json.dumps(Config))
+    sel_file.close()
+
+
+def mode_dominant():
+    modeentry.config(text='dominant')
+    Config['mode'] = 'dominant'
+    if os.name == "posix":
+        sel_file = open(os.path.expanduser("~/Library/Application Support/Colouren/config.json"), 'w')
+    elif os.name == "nt":
+        sel_file = open(os.path.expanduser("~\Colouren\config.json"), 'w')
+    sel_file.write(json.dumps(Config))
+    sel_file.close()
+
+
 def sel():
     var.get()
     sel_file = None
@@ -96,7 +120,7 @@ def update_details():
     Config['port'] = portentry.get()
     Config['optimisation'] = int(optimisationentry.get())
     Optimisation = int(Config["optimisation"])
-    Config['frequency'] = round(1/int(frequencyentry.get()), 2)
+    Config['frequency'] = round(1 / int(frequencyentry.get()), 2)
     if not verify_ip():
         Pause = True
         Config['ip'] = ""
@@ -132,16 +156,22 @@ def calculate_and_send_packet():
             desktop_image = getRectAsImage(getDisplayRects()[Config['display'] - 1])
         elif os.name == "posix":
             desktop_image = ImageGrab.grab()
-        for y in range(0, desktop_image.size[1], Optimisation):
-            for x in range(0, desktop_image.size[0], Optimisation):
-                colour = desktop_image.getpixel((x, y))
-                red = red + colour[0]
-                green = green + colour[1]
-                blue = blue + colour[2]
-        red = int(round((red / ((desktop_image.size[1] / Optimisation) * (desktop_image.size[0] / Optimisation))), 0))
-        green = int(
-            round((green / ((desktop_image.size[1] / Optimisation) * (desktop_image.size[0] / Optimisation))), 0))
-        blue = int(round((blue / ((desktop_image.size[1] / Optimisation) * (desktop_image.size[0] / Optimisation))), 0))
+        if Config['mode'] == 'average':
+            for y in range(0, desktop_image.size[1], Optimisation):
+                for x in range(0, desktop_image.size[0], Optimisation):
+                    colour = desktop_image.getpixel((x, y))
+                    red = red + colour[0]
+                    green = green + colour[1]
+                    blue = blue + colour[2]
+            red = int(round((red / ((desktop_image.size[1] / Optimisation) * (desktop_image.size[0] / Optimisation))), 0))
+            green = int(
+                round((green / ((desktop_image.size[1] / Optimisation) * (desktop_image.size[0] / Optimisation))), 0))
+            blue = int(round((blue / ((desktop_image.size[1] / Optimisation) * (desktop_image.size[0] / Optimisation))), 0))
+        elif Config['mode'] == 'dominant':
+            color_thief = ColorThief(desktop_image)
+            colours = color_thief.get_color(quality=25)
+            print(colours)
+            red, green,blue = colours
         try:
             client.send_message("/red", red)
             client.send_message("/green", green)
@@ -157,6 +187,8 @@ def verify_and_update_osc():
     global T
     global Optimisation
     Optimisation = int(Config["optimisation"])
+    if Config["mode"] == "dominant":
+        Config["frequency"] = 1
     T = PerpetualTimer(float(Config["frequency"]), calculate_and_send_packet)
     if not T.is_alive() and verify_ip() and verify_port():
         T.start()
@@ -195,13 +227,13 @@ if __name__ == "__main__":
                 file.close()
             else:
                 file = open(os.path.expanduser("~/Library/Application Support/Colouren/config.json"), 'w+')
-                Config = {'ip': '', 'port': '', 'display': 1, 'optimisation': 10, 'frequency': 0.25}
+                Config = {'ip': '', 'port': '', 'display': 1, 'optimisation': 10, 'frequency': 0.25, 'mode': 'average'}
                 file.write(json.dumps(Config))
                 file.close()
         else:
             os.makedirs(os.path.expanduser("~/Library/Application Support/Colouren"))
             file = open(os.path.expanduser("~/Library/Application Support/Colouren/config.json"), 'w+')
-            Config = {'ip': '', 'port': '', 'display': 1, 'optimisation': 10, 'frequency': 0.25}
+            Config = {'ip': '', 'port': '', 'display': 1, 'optimisation': 10, 'frequency': 0.25, 'mode': 'average'}
             file.write(json.dumps(Config))
             file.close()
     # If using Windows
@@ -213,13 +245,13 @@ if __name__ == "__main__":
                 file.close()
             else:
                 file = open(os.path.expanduser("~\Colouren\config.json"), 'w+')
-                Config = {'ip': '', 'port': '', 'display': 1, 'optimisation': 10, 'frequency': 0.25}
+                Config = {'ip': '', 'port': '', 'display': 1, 'optimisation': 10, 'frequency': 0.25, 'mode': 'average'}
                 file.write(json.dumps(Config))
                 file.close()
         else:
             os.makedirs(os.path.expanduser("~\Colouren"))
             file = open(os.path.expanduser("~\Colouren\config.json"), 'w+')
-            Config = {'ip': '', 'port': '', 'display': 1, 'optimisation': 10, 'frequency': 0.25}
+            Config = {'ip': '', 'port': '', 'display': 1, 'optimisation': 10, 'frequency': 0.25, 'mode': 'average'}
             file.write(json.dumps(Config))
             file.close()
 
@@ -232,7 +264,6 @@ if __name__ == "__main__":
     elif os.name == "posix":
         desktop1img = ImageGrab.grab()
         desktop2img = Image.new('RGB', (100, 100))
-
 
     desktop1img = desktop1img.resize((int(150 * (desktop1img.size[0] / desktop1img.size[1])), 150), Image.ANTIALIAS)
     desktop2img = desktop2img.resize((int(150 * (desktop2img.size[0] / desktop2img.size[1])), 150), Image.ANTIALIAS)
@@ -321,9 +352,21 @@ if __name__ == "__main__":
     frequencylabel2 = Label(detailsFrame, text="(Default: 4. Amount of refreshes/second)", bg='grey')
     frequencylabel2.grid(column=7, row=4, pady=2, sticky='w')
 
+    # Mode
+    modelabel = Label(detailsFrame, text="Mode: ", bg='grey')
+    modelabel.grid(column=0, columnspan=3, row=5, pady=2, sticky='w')
+    modeentry = Menubutton(detailsFrame, text="average", width=20, relief=RAISED)
+    modemenu = Menu(modeentry, tearoff=0)
+    modeentry["menu"] = modemenu
+    modemenu.add_command(label="average", command=mode_average)
+    modemenu.add_command(label="dominant", command=mode_dominant)
+    modeentry.grid(column=3, row=5, pady=2)
+    modelabel2 = Label(detailsFrame, text="(Default: average. Method of generating colour.)", bg='grey')
+    modelabel2.grid(column=7, row=5, pady=2, sticky='w')
+
     # Apply Button
     applybutton = Button(detailsFrame, bg="grey", text="Apply", command=update_details)
-    applybutton.grid(column=0, row=5, columnspan=8, pady=2)
+    applybutton.grid(column=0, row=6, columnspan=8, pady=2)
 
     # Information
     # Title Label
@@ -349,9 +392,10 @@ if __name__ == "__main__":
     else:
         optimisationentry.insert(0, '10')
     if len(str(Config['frequency'])) >= 1:
-        frequencyentry.insert(0, str(int(1/Config['frequency'])))
+        frequencyentry.insert(0, str(int(1 / Config['frequency'])))
     else:
         frequencyentry.insert(0, '4')
+    modeentry.config(text=Config['mode'])
     verify_and_update_osc()
 
     window.protocol("WM_DELETE_WINDOW", quitting)
