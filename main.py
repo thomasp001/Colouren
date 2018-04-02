@@ -18,6 +18,7 @@ import json
 import os
 import socket
 import sys
+import time
 from colorthief import ColorThief
 from threading import Timer
 from tkinter import *
@@ -64,32 +65,39 @@ class PerpetualTimer:
 
 
 def quitting():
+    global Pause
+    Pause = True
     global T
     T.cancel()
-    window.destroy()
+    time.sleep(0.25)
+    T.cancel()
+    time.sleep(0.25)
     sys.exit()
+    # window.destroy()
 
 
 def mode_average():
     modeentry.config(text='average')
     Config['mode'] = 'average'
+    mode_average_file = None
     if os.name == "posix":
-        sel_file = open(os.path.expanduser("~/Library/Application Support/Colouren/config.json"), 'w')
+        mode_average_file = open(os.path.expanduser("~/Library/Application Support/Colouren/config.json"), 'w')
     elif os.name == "nt":
-        sel_file = open(os.path.expanduser("~\Colouren\config.json"), 'w')
-    sel_file.write(json.dumps(Config))
-    sel_file.close()
+        mode_average_file = open(os.path.expanduser("~\Colouren\config.json"), 'w')
+    mode_average_file.write(json.dumps(Config))
+    mode_average_file.close()
 
 
 def mode_dominant():
     modeentry.config(text='dominant')
     Config['mode'] = 'dominant'
+    mode_dominant_file = None
     if os.name == "posix":
-        sel_file = open(os.path.expanduser("~/Library/Application Support/Colouren/config.json"), 'w')
+        mode_dominant_file = open(os.path.expanduser("~/Library/Application Support/Colouren/config.json"), 'w')
     elif os.name == "nt":
-        sel_file = open(os.path.expanduser("~\Colouren\config.json"), 'w')
-    sel_file.write(json.dumps(Config))
-    sel_file.close()
+        mode_dominant_file = open(os.path.expanduser("~\Colouren\config.json"), 'w')
+    mode_dominant_file.write(json.dumps(Config))
+    mode_dominant_file.close()
 
 
 def sel():
@@ -152,6 +160,7 @@ def calculate_and_send_packet():
         red = 0
         green = 0
         blue = 0
+        desktop_image = None
         if os.name == "nt":
             desktop_image = getRectAsImage(getDisplayRects()[Config['display'] - 1])
         elif os.name == "posix":
@@ -163,21 +172,24 @@ def calculate_and_send_packet():
                     red = red + colour[0]
                     green = green + colour[1]
                     blue = blue + colour[2]
-            red = int(round((red / ((desktop_image.size[1] / Optimisation) * (desktop_image.size[0] / Optimisation))), 0))
+            red = int(
+                round((red / ((desktop_image.size[1] / Optimisation) * (desktop_image.size[0] / Optimisation))), 0))
             green = int(
                 round((green / ((desktop_image.size[1] / Optimisation) * (desktop_image.size[0] / Optimisation))), 0))
-            blue = int(round((blue / ((desktop_image.size[1] / Optimisation) * (desktop_image.size[0] / Optimisation))), 0))
+            blue = int(
+                round((blue / ((desktop_image.size[1] / Optimisation) * (desktop_image.size[0] / Optimisation))), 0))
         elif Config['mode'] == 'dominant':
             color_thief = ColorThief(desktop_image)
             colours = color_thief.get_color(quality=25)
-            print(colours)
-            red, green,blue = colours
+            red, green, blue = colours
         try:
             client.send_message("/red", red)
             client.send_message("/green", green)
             client.send_message("/blue", blue)
         except socket.error:
-            print("Missed a packet")
+            print("Packet Missed")
+    else:
+        return
 
 
 T = PerpetualTimer(0.25, calculate_and_send_packet)
@@ -255,6 +267,8 @@ if __name__ == "__main__":
             file.write(json.dumps(Config))
             file.close()
 
+    desktop1img = None
+    desktop2img = None
     if os.name == "nt":
         desktop1img = getDisplaysAsImages()[0]
         try:
