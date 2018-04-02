@@ -279,8 +279,10 @@ if __name__ == "__main__":
         desktop_1_img = ImageGrab.grab()
         desktop_2_img = Image.new('RGB', (100, 100))
 
-    desktop_1_img = desktop_1_img.resize((int(150 * (desktop_1_img.size[0] / desktop_1_img.size[1])), 150), Image.ANTIALIAS)
-    desktop_2_img = desktop_2_img.resize((int(150 * (desktop_2_img.size[0] / desktop_2_img.size[1])), 150), Image.ANTIALIAS)
+    desktop_1_img = desktop_1_img.resize((int(150 * (desktop_1_img.size[0] / desktop_1_img.size[1])), 150),
+                                         Image.ANTIALIAS)
+    desktop_2_img = desktop_2_img.resize((int(150 * (desktop_2_img.size[0] / desktop_2_img.size[1])), 150),
+                                         Image.ANTIALIAS)
     desktop_1_image = ImageTk.PhotoImage(desktop_1_img)
     desktop_2_image = ImageTk.PhotoImage(desktop_2_img)
 
