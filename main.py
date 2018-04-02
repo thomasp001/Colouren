@@ -77,7 +77,7 @@ def quitting():
 
 
 def mode_average():
-    modeentry.config(text='average')
+    mode_entry.config(text='average')
     Config['mode'] = 'average'
     mode_average_file = None
     if os.name == "posix":
@@ -89,7 +89,7 @@ def mode_average():
 
 
 def mode_dominant():
-    modeentry.config(text='dominant')
+    mode_entry.config(text='dominant')
     Config['mode'] = 'dominant'
     mode_dominant_file = None
     if os.name == "posix":
@@ -124,11 +124,11 @@ def update_details():
         update_details_file = open(os.path.expanduser("~/Library/Application Support/Colouren/config.json"), 'w')
     elif os.name == "nt":
         update_details_file = open(os.path.expanduser("~\Colouren\config.json"), 'r+')
-    Config['ip'] = ipentry.get()
-    Config['port'] = portentry.get()
-    Config['optimisation'] = int(optimisationentry.get())
+    Config['ip'] = ip_entry.get()
+    Config['port'] = port_entry.get()
+    Config['optimisation'] = int(optimisation_entry.get())
     Optimisation = int(Config["optimisation"])
-    Config['frequency'] = round(1 / int(frequencyentry.get()), 2)
+    Config['frequency'] = round(1 / int(frequency_entry.get()), 2)
     if not verify_ip():
         Pause = True
         Config['ip'] = ""
@@ -149,7 +149,7 @@ def update_details():
         messagebox.showerror('Whoops!', 'Looks like you don\'t have a properly formatted port and IP address.'
                                         'Fix your port to continue.')
     elif error == 0:
-        messagebox.showinfo('Yippy!', 'Correct details entered, will now begin sending information over OSC.')
+        messagebox.showinfo('Yippee!', 'Correct details entered, will now begin sending information over OSC.')
         Pause = False
         verify_and_update_osc()
 
@@ -267,149 +267,149 @@ if __name__ == "__main__":
             file.write(json.dumps(Config))
             file.close()
 
-    desktop1img = None
-    desktop2img = None
+    desktop_1_img = None
+    desktop_2_img = None
     if os.name == "nt":
-        desktop1img = getDisplaysAsImages()[0]
+        desktop_1_img = getDisplaysAsImages()[0]
         try:
-            desktop2img = getDisplaysAsImages()[1]
+            desktop_2_img = getDisplaysAsImages()[1]
         except IndexError:
-            desktop2img = Image.new('RGB', (100, 100))
+            desktop_2_img = Image.new('RGB', (100, 100))
     elif os.name == "posix":
-        desktop1img = ImageGrab.grab()
-        desktop2img = Image.new('RGB', (100, 100))
+        desktop_1_img = ImageGrab.grab()
+        desktop_2_img = Image.new('RGB', (100, 100))
 
-    desktop1img = desktop1img.resize((int(150 * (desktop1img.size[0] / desktop1img.size[1])), 150), Image.ANTIALIAS)
-    desktop2img = desktop2img.resize((int(150 * (desktop2img.size[0] / desktop2img.size[1])), 150), Image.ANTIALIAS)
-    desktop1image = ImageTk.PhotoImage(desktop1img)
-    desktop2image = ImageTk.PhotoImage(desktop2img)
+    desktop_1_img = desktop_1_img.resize((int(150 * (desktop_1_img.size[0] / desktop_1_img.size[1])), 150), Image.ANTIALIAS)
+    desktop_2_img = desktop_2_img.resize((int(150 * (desktop_2_img.size[0] / desktop_2_img.size[1])), 150), Image.ANTIALIAS)
+    desktop_1_image = ImageTk.PhotoImage(desktop_1_img)
+    desktop_2_image = ImageTk.PhotoImage(desktop_2_img)
 
     # Top Label
-    titlelabel = Label(window, text="Colouren By Thomas P", bg='grey', font=("Times", 25), pady=15)
-    titlelabel.pack(side="top")
+    title_label = Label(window, text="Colouren By Thomas P", bg='grey', font=("Times", 25), pady=15)
+    title_label.pack(side="top")
 
     # Desktops Frame
-    optionsFrame = Frame(window, bg='grey')
-    optionsFrame.pack(side="top")
+    options_frame = Frame(window, bg='grey')
+    options_frame.pack(side="top")
 
     # Instructions
-    instructionlabel = Label(optionsFrame, text="Which display do you wish to output colour information for?",
-                             bg='grey', font=("Ariel", 15), pady=15)
-    instructionlabel.pack(side="top")
+    instruction_label = Label(options_frame, text="Which display do you wish to output colour information for?",
+                              bg='grey', font=("Ariel", 15), pady=15)
+    instruction_label.pack(side="top")
 
-    # Create two seperate frames
-    leftFrame = Frame(optionsFrame, bg='grey')
-    rightFrame = Frame(optionsFrame, bg='grey')
-    leftFrame.pack(side="left", expand=True)
-    rightFrame.pack(side="left", expand=True)
+    # Create two separate frames
+    left_frame = Frame(options_frame, bg='grey')
+    right_frame = Frame(options_frame, bg='grey')
+    left_frame.pack(side="left", expand=True)
+    right_frame.pack(side="left", expand=True)
 
     # The Label widget is a standard Tkinter widget used to display a text or image on the screen.
-    desktop1panel = Radiobutton(leftFrame, image=desktop1image, variable=var, value=1, command=sel)
-    desktop1panel.pack(side="top", expand=True)
-    desktop2panel = Radiobutton(rightFrame, image=desktop2image, variable=var, value=2, command=sel)
-    desktop2panel.pack(side="top", expand=True)
+    desktop_1_panel = Radiobutton(left_frame, image=desktop_1_image, variable=var, value=1, command=sel)
+    desktop_1_panel.pack(side="top", expand=True)
+    desktop_2_panel = Radiobutton(right_frame, image=desktop_2_image, variable=var, value=2, command=sel)
+    desktop_2_panel.pack(side="top", expand=True)
 
     # Radio Button and Labels
-    desktop1label = Radiobutton(leftFrame, text="Display 1", variable=var, value=1, command=sel, bg='grey')
-    desktop1label.pack(side="top")
+    desktop_1_label = Radiobutton(left_frame, text="Display 1", variable=var, value=1, command=sel, bg='grey')
+    desktop_1_label.pack(side="top")
 
     if os.name == "nt" and len(getDisplayRects()) >= 2:
-        desktop2label = Radiobutton(rightFrame, text="Display 2", variable=var, value=2, command=sel, bg='grey')
+        desktop_2_label = Radiobutton(right_frame, text="Display 2", variable=var, value=2, command=sel, bg='grey')
     else:
-        desktop2label = Radiobutton(rightFrame, text="Not Available", variable=var, value=2, command=sel, bg='grey')
-    desktop2label.pack(side="top")
+        desktop_2_label = Radiobutton(right_frame, text="Not Available", variable=var, value=2, command=sel, bg='grey')
+    desktop_2_label.pack(side="top")
 
     # Set a default display
     if Config["display"] == 1:
-        desktop1label.select()
+        desktop_1_label.select()
     elif Config["display"] == 2:
-        desktop2label.select()
+        desktop_2_label.select()
     else:
-        desktop1label.select()
+        desktop_1_label.select()
     sel()
 
     # Title Label
-    osclabel = Label(window, text="What are the details for your OSC server?", bg='grey', font=("Ariel", 15), pady=15)
-    osclabel.pack(side="top")
+    osc_label = Label(window, text="What are the details for your OSC server?", bg='grey', font=("Ariel", 15), pady=15)
+    osc_label.pack(side="top")
 
     # Create Frame for ArtNet Information
     detailsFrame = Frame(window, bg='grey', padx=10)
     detailsFrame.pack(side="top", expand=False, fill="x")
 
     # IP Address
-    iplabel = Label(detailsFrame, text="IP Address: ", bg='grey')
-    iplabel.grid(column=0, columnspan=3, row=1, pady=2, sticky='w')
-    ipentry = Entry(detailsFrame, exportselection=0)
-    ipentry.grid(column=3, row=1, pady=2, sticky='w')
+    ip_label = Label(detailsFrame, text="IP Address: ", bg='grey')
+    ip_label.grid(column=0, columnspan=3, row=1, pady=2, sticky='w')
+    ip_entry = Entry(detailsFrame, exportselection=0)
+    ip_entry.grid(column=3, row=1, pady=2, sticky='w')
 
     # Port
-    portlabel = Label(detailsFrame, text="Port: ", bg='grey')
-    portlabel.grid(column=0, columnspan=3, row=2, sticky="w", pady=2)
-    portentry = Entry(detailsFrame, exportselection=0)
-    portentry.grid(column=3, columnspan=4, row=2, pady=2, sticky="w")
-    portlabel2 = Label(detailsFrame, text="(Default: 7700)", bg='grey')
-    portlabel2.grid(column=7, row=2, pady=2, sticky='w')
+    port_label = Label(detailsFrame, text="Port: ", bg='grey')
+    port_label.grid(column=0, columnspan=3, row=2, sticky="w", pady=2)
+    port_entry = Entry(detailsFrame, exportselection=0)
+    port_entry.grid(column=3, columnspan=4, row=2, pady=2, sticky="w")
+    port_label2 = Label(detailsFrame, text="(Default: 7700)", bg='grey')
+    port_label2.grid(column=7, row=2, pady=2, sticky='w')
 
     # Optimisation
-    optimisationlabel = Label(detailsFrame, text="Optimisation: ", bg='grey')
-    optimisationlabel.grid(column=0, columnspan=3, row=3, pady=2, sticky='w')
-    optimisationentry = Spinbox(detailsFrame, exportselection=0, from_=1, to=15)
-    optimisationentry.grid(column=3, row=3, pady=2)
-    optimisationlabel2 = Label(detailsFrame, text="(Default: 10, Higher is more optimised)", bg='grey')
-    optimisationlabel2.grid(column=7, row=3, pady=2, sticky='w')
+    optimisation_label = Label(detailsFrame, text="Optimisation: ", bg='grey')
+    optimisation_label.grid(column=0, columnspan=3, row=3, pady=2, sticky='w')
+    optimisation_entry = Spinbox(detailsFrame, exportselection=0, from_=1, to=15)
+    optimisation_entry.grid(column=3, row=3, pady=2)
+    optimisation_label2 = Label(detailsFrame, text="(Default: 10, Higher is more optimised)", bg='grey')
+    optimisation_label2.grid(column=7, row=3, pady=2, sticky='w')
 
     # Frequency
-    frequencylabel = Label(detailsFrame, text="Frequency: ", bg='grey')
-    frequencylabel.grid(column=0, columnspan=3, row=4, pady=2, sticky='w')
-    frequencyentry = Spinbox(detailsFrame, exportselection=0, from_=1, to=10)
-    frequencyentry.grid(column=3, row=4, pady=2)
-    frequencylabel2 = Label(detailsFrame, text="(Default: 4. Amount of refreshes/second)", bg='grey')
-    frequencylabel2.grid(column=7, row=4, pady=2, sticky='w')
+    frequency_label = Label(detailsFrame, text="Frequency: ", bg='grey')
+    frequency_label.grid(column=0, columnspan=3, row=4, pady=2, sticky='w')
+    frequency_entry = Spinbox(detailsFrame, exportselection=0, from_=1, to=10)
+    frequency_entry.grid(column=3, row=4, pady=2)
+    frequency_label2 = Label(detailsFrame, text="(Default: 4. Amount of refreshes/second)", bg='grey')
+    frequency_label2.grid(column=7, row=4, pady=2, sticky='w')
 
     # Mode
-    modelabel = Label(detailsFrame, text="Mode: ", bg='grey')
-    modelabel.grid(column=0, columnspan=3, row=5, pady=2, sticky='w')
-    modeentry = Menubutton(detailsFrame, text="average", width=20, relief=RAISED)
-    modemenu = Menu(modeentry, tearoff=0)
-    modeentry["menu"] = modemenu
-    modemenu.add_command(label="average", command=mode_average)
-    modemenu.add_command(label="dominant", command=mode_dominant)
-    modeentry.grid(column=3, row=5, pady=2)
-    modelabel2 = Label(detailsFrame, text="(Default: average. Method of generating colour.)", bg='grey')
-    modelabel2.grid(column=7, row=5, pady=2, sticky='w')
+    mode_label = Label(detailsFrame, text="Mode: ", bg='grey')
+    mode_label.grid(column=0, columnspan=3, row=5, pady=2, sticky='w')
+    mode_entry = Menubutton(detailsFrame, text="average", width=20, relief=RAISED)
+    mode_menu = Menu(mode_entry, tearoff=0)
+    mode_entry["menu"] = mode_menu
+    mode_menu.add_command(label="average", command=mode_average)
+    mode_menu.add_command(label="dominant", command=mode_dominant)
+    mode_entry.grid(column=3, row=5, pady=2)
+    mode_label2 = Label(detailsFrame, text="(Default: average. Method of generating colour.)", bg='grey')
+    mode_label2.grid(column=7, row=5, pady=2, sticky='w')
 
     # Apply Button
-    applybutton = Button(detailsFrame, bg="grey", text="Apply", command=update_details)
-    applybutton.grid(column=0, row=6, columnspan=8, pady=2)
+    apply_button = Button(detailsFrame, bg="grey", text="Apply", command=update_details)
+    apply_button.grid(column=0, row=6, columnspan=8, pady=2)
 
     # Information
     # Title Label
-    artnetlabel = Label(window,
-                        text="Colouren calulates the average colour of one of your display outputs and sends that\n"
-                             "information in RGB format to another computer on the network over Open Sound Control.",
-                        bg='grey', font=("Ariel", 12), pady=15)
-    artnetlabel.pack(side="bottom")
+    artnet_label = Label(window,
+                         text="Colouren calculates the average colour of one of your display outputs and sends that\n"
+                              "information in RGB format to another computer on the network over Open Sound Control.",
+                         bg='grey', font=("Ariel", 12), pady=15)
+    artnet_label.pack(side="bottom")
 
     # Set Defaults
     if verify_ip():
-        ipentry.insert(0, Config['ip'])
+        ip_entry.insert(0, Config['ip'])
     else:
-        ipentry.insert(0, '192.168.')
+        ip_entry.insert(0, '192.168.')
     if verify_port():
-        portentry.insert(0, Config['port'])
+        port_entry.insert(0, Config['port'])
     else:
-        portentry.insert(0, '7700')
-    optimisationentry.delete(0)
-    frequencyentry.delete(0)
+        port_entry.insert(0, '7700')
+    optimisation_entry.delete(0)
+    frequency_entry.delete(0)
     if len(str(Config['optimisation'])) >= 1:
-        optimisationentry.insert(0, str(Config['optimisation']))
+        optimisation_entry.insert(0, str(Config['optimisation']))
     else:
-        optimisationentry.insert(0, '10')
+        optimisation_entry.insert(0, '10')
     if len(str(Config['frequency'])) >= 1:
-        frequencyentry.insert(0, str(int(1 / Config['frequency'])))
+        frequency_entry.insert(0, str(int(1 / Config['frequency'])))
     else:
-        frequencyentry.insert(0, '4')
-    modeentry.config(text=Config['mode'])
+        frequency_entry.insert(0, '4')
+    mode_entry.config(text=Config['mode'])
     verify_and_update_osc()
 
     window.protocol("WM_DELETE_WINDOW", quitting)
