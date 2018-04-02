@@ -30,7 +30,7 @@ if os.name == "nt":
     from desktopmagic.screengrab_win32 import getDisplayRects, getRectAsImage, getDisplaysAsImages
 
 window = Tk()
-window.title("Colouren by Thomas P")
+window.title("Colouren by Thomas P (V1.1)")
 window.geometry("700x600")
 window.configure(background='grey')
 window.resizable(width=False, height=False)
