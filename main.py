@@ -123,7 +123,7 @@ def update_details():
     if os.name == "posix":
         update_details_file = open(os.path.expanduser("~/Library/Application Support/Colouren/config.json"), 'w')
     elif os.name == "nt":
-        update_details_file = open(os.path.expanduser("~\Colouren\config.json"), 'r+')
+        update_details_file = open(os.path.expanduser("~\Colouren\config.json"), 'w')
     Config['ip'] = ip_entry.get()
     Config['port'] = port_entry.get()
     Config['optimisation'] = int(optimisation_entry.get())
