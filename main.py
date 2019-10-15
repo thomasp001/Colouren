@@ -269,12 +269,17 @@ if __name__ == "__main__":
 
     desktop_1_img = None
     desktop_2_img = None
+    desktop_3_img = None
     if os.name == "nt":
         desktop_1_img = getDisplaysAsImages()[0]
         try:
             desktop_2_img = getDisplaysAsImages()[1]
         except IndexError:
             desktop_2_img = Image.new('RGB', (100, 100))
+         try:
+            desktop_3_img = getDisplaysAsImages()[2]
+        except IndexError:
+            desktop_3_img = Image.new('RGB', (100, 100))
     elif os.name == "posix":
         desktop_1_img = ImageGrab.grab()
         desktop_2_img = Image.new('RGB', (100, 100))
@@ -283,8 +288,11 @@ if __name__ == "__main__":
                                          Image.ANTIALIAS)
     desktop_2_img = desktop_2_img.resize((int(150 * (desktop_2_img.size[0] / desktop_2_img.size[1])), 150),
                                          Image.ANTIALIAS)
+    desktop_3_img = desktop_3_img.resize((int(150 * (desktop_3_img.size[0] / desktop_3_img.size[1])), 150),
+                                         Image.ANTIALIAS)
     desktop_1_image = ImageTk.PhotoImage(desktop_1_img)
     desktop_2_image = ImageTk.PhotoImage(desktop_2_img)
+    desktop_3_image = ImageTk.PhotoImage(desktop_3_img)
 
     # Top Label
     title_label = Label(window, text="Colouren By Thomas P", bg='grey', font=("Times", 25), pady=15)
@@ -299,26 +307,36 @@ if __name__ == "__main__":
                               bg='grey', font=("Ariel", 15), pady=15)
     instruction_label.pack(side="top")
 
-    # Create two separate frames
+    # Create three separate frames
     left_frame = Frame(options_frame, bg='grey')
+    middle_frame = Frame(options_frame, bg='grey')
     right_frame = Frame(options_frame, bg='grey')
     left_frame.pack(side="left", expand=True)
+    middle_frame.pack(side="left", expand=True)
     right_frame.pack(side="left", expand=True)
 
     # The Label widget is a standard Tkinter widget used to display a text or image on the screen.
     desktop_1_panel = Radiobutton(left_frame, image=desktop_1_image, variable=var, value=1, command=sel)
     desktop_1_panel.pack(side="top", expand=True)
-    desktop_2_panel = Radiobutton(right_frame, image=desktop_2_image, variable=var, value=2, command=sel)
+    desktop_2_panel = Radiobutton(middle_frame, image=desktop_2_image, variable=var, value=2, command=sel)
     desktop_2_panel.pack(side="top", expand=True)
+    desktop_3_panel = Radiobutton(right_frame, image=desktop_3_image, variable=var, value=2, command=sel)
+    desktop_3_panel.pack(side="top", expand=True)
 
     # Radio Button and Labels
     desktop_1_label = Radiobutton(left_frame, text="Display 1", variable=var, value=1, command=sel, bg='grey')
     desktop_1_label.pack(side="top")
 
     if os.name == "nt" and len(getDisplayRects()) >= 2:
-        desktop_2_label = Radiobutton(right_frame, text="Display 2", variable=var, value=2, command=sel, bg='grey')
+        desktop_2_label = Radiobutton(middle_frame, text="Display 2", variable=var, value=2, command=sel, bg='grey')
     else:
-        desktop_2_label = Radiobutton(right_frame, text="Not Available", variable=var, value=2, command=sel, bg='grey')
+        desktop_2_label = Radiobutton(middle_frame, text="Not Available", variable=var, value=2, command=sel, bg='grey')
+    desktop_2_label.pack(side="top")
+    
+    if os.name == "nt" and len(getDisplayRects()) >= 3:
+        desktop_3_label = Radiobutton(right_frame, text="Display 3", variable=var, value=2, command=sel, bg='grey')
+    else:
+        desktop_3_label = Radiobutton(right_frame, text="Not Available", variable=var, value=2, command=sel, bg='grey')
     desktop_2_label.pack(side="top")
 
     # Set a default display
@@ -326,6 +344,8 @@ if __name__ == "__main__":
         desktop_1_label.select()
     elif Config["display"] == 2:
         desktop_2_label.select()
+    elif Config["display"] == 3:
+        desktop_3_label.select()
     else:
         desktop_1_label.select()
     sel()
