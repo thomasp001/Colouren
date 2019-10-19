@@ -30,7 +30,7 @@ if os.name == "nt":
     from desktopmagic.screengrab_win32 import getDisplayRects, getRectAsImage, getDisplaysAsImages
 
 window = Tk()
-window.title("Colouren by Thomas P (V1.1)")
+window.title("Colouren by Thomas P (V1.3)")
 window.geometry("700x600")
 window.configure(background='grey')
 window.resizable(width=False, height=False)
@@ -65,16 +65,10 @@ class PerpetualTimer:
 
 
 def quitting():
-    global Pause
-    Pause = True
+    window.destroy()
     global T
     T.cancel()
-    time.sleep(0.25)
-    T.cancel()
-    time.sleep(0.25)
     sys.exit()
-    # window.destroy()
-
 
 def mode_average():
     mode_entry.config(text='average')
@@ -276,7 +270,7 @@ if __name__ == "__main__":
             desktop_2_img = getDisplaysAsImages()[1]
         except IndexError:
             desktop_2_img = Image.new('RGB', (100, 100))
-         try:
+        try:
             desktop_3_img = getDisplaysAsImages()[2]
         except IndexError:
             desktop_3_img = Image.new('RGB', (100, 100))
@@ -320,7 +314,7 @@ if __name__ == "__main__":
     desktop_1_panel.pack(side="top", expand=True)
     desktop_2_panel = Radiobutton(middle_frame, image=desktop_2_image, variable=var, value=2, command=sel)
     desktop_2_panel.pack(side="top", expand=True)
-    desktop_3_panel = Radiobutton(right_frame, image=desktop_3_image, variable=var, value=2, command=sel)
+    desktop_3_panel = Radiobutton(right_frame, image=desktop_3_image, variable=var, value=3, command=sel)
     desktop_3_panel.pack(side="top", expand=True)
 
     # Radio Button and Labels
@@ -334,10 +328,10 @@ if __name__ == "__main__":
     desktop_2_label.pack(side="top")
     
     if os.name == "nt" and len(getDisplayRects()) >= 3:
-        desktop_3_label = Radiobutton(right_frame, text="Display 3", variable=var, value=2, command=sel, bg='grey')
+        desktop_3_label = Radiobutton(right_frame, text="Display 3", variable=var, value=3, command=sel, bg='grey')
     else:
-        desktop_3_label = Radiobutton(right_frame, text="Not Available", variable=var, value=2, command=sel, bg='grey')
-    desktop_2_label.pack(side="top")
+        desktop_3_label = Radiobutton(right_frame, text="Not Available", variable=var, value=3, command=sel, bg='grey')
+    desktop_3_label.pack(side="top")
 
     # Set a default display
     if Config["display"] == 1:
